@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"QuickSnip/ui"
 	"fmt"
 	"os"
 
@@ -8,11 +9,16 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "qsnip",
+	Use:   "snip",
 	Short: "Quick Snip is a tool to save your thought snippets",
 	Long:  `A fast and flexible cli tool to save your thought snippets and read them again`,
-	Run: func(cmd *cobra.Command, args []string) {
-
+	RunE: func(cmd *cobra.Command, args []string) error {
+		snippets := []ui.Snippet{
+			{ID: 1, Title: "Golang Tips", Body: "Use defer for cleanup"},
+			{ID: 2, Title: "Docker", Body: "docker ps -a"},
+			{ID: 3, Title: "Java Snip", Body: "java snip"},
+		}
+		return ui.RunBrowse(snippets)
 	},
 }
 
