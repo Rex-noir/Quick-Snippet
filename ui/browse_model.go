@@ -1,14 +1,14 @@
 package ui
 
 import (
-	"github.com/charmbracelet/bubbles/table"
+	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type browseModel struct {
-	table         table.Model
+	list          list.Model
 	items         []Snippet
 	filteredItems []Snippet
 	filterInput   textinput.Model
@@ -46,6 +46,14 @@ func NewBrowseModel(snippets []Snippet) tea.Model {
 	bodyInput.Placeholder = "Enter body..."
 	bodyInput.SetHeight(10)
 
+	delegate := itemDelegate{}
+	l := list.New([]list.Item{}, delegate, 80, 30)
+	l.Title = "Quick Snippets"
+	l.SetShowStatusBar(false)
+	l.SetFilteringEnabled(true)
+	l.SetShowTitle(false)
+	l.SetShowHelp(false)
+
 	// Find next ID
 	nextID := 1
 	for _, s := range snippets {
@@ -61,6 +69,7 @@ func NewBrowseModel(snippets []Snippet) tea.Model {
 		titleInput:    titleInput,
 		bodyInput:     bodyInput,
 		keys:          keys,
+		list:          l,
 		mode:          browseMode,
 		filtering:     false,
 		currentSort:   sortByID,
@@ -68,6 +77,6 @@ func NewBrowseModel(snippets []Snippet) tea.Model {
 		nextID:        nextID,
 	}
 
-	m.updateTable()
+	m.updateList()
 	return &m
 }
