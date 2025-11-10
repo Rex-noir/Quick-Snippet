@@ -271,7 +271,7 @@ func (m *browseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch msg.String() {
 			case "esc":
 				if m.titleInput.Focused() {
-					m.mode = browseMode
+					m.mode = previewMode
 					m.statusMsg = "Cancelled"
 				} else {
 					m.titleInput.Focus()
@@ -396,7 +396,7 @@ func (m *browseModel) View() string {
 			return m.View()
 		}
 
-		title := titleStyle.Render(fmt.Sprintf("📖 Preview: %s", snippet.Title))
+		title := titleStyle.Render(fmt.Sprintf("Title: %s", snippet.Title))
 
 		bodyStyle := lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
