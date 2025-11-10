@@ -3,7 +3,9 @@ package ui
 import (
 	"fmt"
 
+	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type Snippet struct {
@@ -13,79 +15,66 @@ type Snippet struct {
 }
 
 type browseModel struct {
-	cursor     int
-	items      []Snippet
-	openNote   bool
-	deleteMode bool
-	searchMode bool
-	selected   Snippet
+	table table.Model
+	items []Snippet
 }
 
-func newBrowseModel(snippets []Snippet) browseModel {
-	return browseModel{items: snippets}
-}
-
-func (m browseModel) SelectedInput() Snippet {
-	if len(m.items) == 0 {
-		return Snippet{}
+func newBrowseModel(snippets []Snippet) tea.Model {
+	columns := []table.Column{
+		{Title: "ID", Width: 4},
+		{Title: "Title", Width: 20},
 	}
 
-	return m.items[m.cursor]
+	rows := make([]table.Row, len(snippets))
+	for i, s := range snippets {
+		rows[i] = table.Row{fmt.Sprintf("%d", s.ID), s.Title}
+	}
 
+	t := table.New(
+		table.WithColumns(columns),
+		table.WithRows(rows),
+		table.WithFocused(true),
+		table.WithHeight(10),
+	)
+
+	s := table.DefaultStyles()
+	s.Header = s.Header.
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		BorderBottom(true).
+		Bold(false)
+	s.Selected = s.Selected.
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("57")).
+		Bold(false)
+	t.SetStyles(s)
+
+	return browseModel{table: t, items: snippets}
 }
 
-func (m browseModel) Init() tea.Cmd {
-	return nil
-}
+func (m browseModel) Init() tea.Cmd { return nil }
 
 func (m browseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
+	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "q":
+		case "q", "ctrl+c":
 			return m, tea.Quit
-
-		case "j", "down":
-			if m.cursor < len(m.items)-1 {
-				m.cursor++
-			}
-
-		case "k", "up":
-			if m.cursor > 0 {
-				m.cursor--
-			}
 		case "enter":
-			m.openNote = true
-			m.selected = m.SelectedInput()
-
-		case "d":
-			m.deleteMode = true
-			m.selected = m.SelectedInput()
-
-		case "/":
-			m.searchMode = true
+			row := m.table.SelectedRow()
+			if len(row) > 1 {
+				return m, tea.Printf("Opening note: %s", row[1])
+			}
 		}
-
 	}
-	return m, nil
+	m.table, cmd = m.table.Update(msg)
+	return m, cmd
 }
 
 func (m browseModel) View() string {
-	if len(m.items) == 0 {
-		return "No snippets yet. \n Press 'q' to quit.\n"
-	}
-
-	s := "📒 Your snippets:\n\n"
-	for i, snip := range m.items {
-		cursor := " "
-		if i == m.cursor {
-			cursor = ">"
-		}
-		s += fmt.Sprintf("%s %s\n", cursor, snip.Title)
-	}
-
-	s += "\n↑/↓ move  •  Enter open  •  d delete  •  / search  •  q quit\n"
-	return s
-
+	baseStyle := lipgloss.NewStyle().
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("240"))
+	return baseStyle.Render(m.table.View()) + "\nPress ↑/↓ to navigate, Enter to open, q to quit.\n"
 }
