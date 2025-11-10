@@ -118,7 +118,10 @@ func (m *browseModel) getSelectedSnippet() *Snippet {
 	}
 
 	var id int
-	fmt.Sscanf(row[0], "%d", &id)
+	_, err := fmt.Sscanf(row[0], "%d", &id)
+	if err != nil {
+		return nil
+	}
 
 	for i := range m.filteredItems {
 		if m.filteredItems[i].ID == id {
