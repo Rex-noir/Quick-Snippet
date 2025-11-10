@@ -47,7 +47,7 @@ func NewBrowseModel(snippets []Snippet) tea.Model {
 	bodyInput.SetHeight(10)
 
 	delegate := itemDelegate{}
-	l := list.New([]list.Item{}, delegate, 80, 30)
+	l := list.New([]list.Item{}, delegate, 80, len(snippets))
 	l.Title = "Quick Snippets"
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(true)

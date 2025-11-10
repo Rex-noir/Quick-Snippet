@@ -372,7 +372,6 @@ func (m *browseModel) View() string {
 
 	switch m.mode {
 	case browseMode:
-		title := titleStyle.Render("📝 Snippet Manager")
 
 		filterBar := ""
 		if m.filtering {
@@ -398,7 +397,7 @@ func (m *browseModel) View() string {
 				fmt.Sprintf("%d snippets", len(m.filteredItems)))
 		}
 
-		content = title + "\n\n" + filterBar + m.list.View() + statusBar + help
+		content = filterBar + m.list.View() + statusBar + help
 
 	case previewMode:
 		snippet := m.getSelectedSnippet()
