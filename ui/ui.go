@@ -79,7 +79,7 @@ func (m *browseModel) applyFilter() {
 		m.filteredItems = m.items
 	} else {
 		query := strings.ToLower(m.filterQuery)
-		filtered := []Snippet{}
+		var filtered []Snippet
 		for _, item := range m.items {
 			if strings.Contains(strings.ToLower(item.Title), query) ||
 				strings.Contains(strings.ToLower(item.Body), query) {
