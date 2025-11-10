@@ -6,7 +6,10 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
+
+var cfgFile string
 
 var rootCmd = &cobra.Command{
 	Use:   "snip",
@@ -29,5 +32,26 @@ func Execute() {
 			return
 		}
 		os.Exit(1)
+	}
+}
+
+func init() {
+	cobra.OnInitialize(initConfig)
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.snip.yaml)")
+	rootCmd.PersistentFlags().Bool("debug", false, "enable debug mode")
+
+	err := viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
+	if err != nil {
+		return
+	}
+}
+
+func initConfig() {
+	if cfgFile != "" {
+		viper.SetConfigFile(cfgFile)
+	} else {
+		home, _ := os.UserHomeDir()
+		viper.SetConfigName(".snip")
+		viper.AddConfigPath(home)
 	}
 }
