@@ -18,7 +18,6 @@ type Snippet struct {
 	Body  string
 }
 
-// Implement list.Item interface for Snippet
 func (s Snippet) FilterValue() string {
 	return s.Title + " " + s.Body
 }
