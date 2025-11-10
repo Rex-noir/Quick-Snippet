@@ -1,14 +1,15 @@
 package ui
 
 import (
-	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type browseModel struct {
-	list          list.Model
+	table         table.Model
 	items         []Snippet
 	filteredItems []Snippet
 	filterInput   textinput.Model
@@ -46,19 +47,36 @@ func NewBrowseModel(snippets []Snippet) tea.Model {
 	bodyInput.Placeholder = "Enter body..."
 	bodyInput.SetHeight(10)
 
-	delegate := itemDelegate{}
-	l := list.New([]list.Item{}, delegate, 80, len(snippets))
-	l.Title = "Quick Snippets"
-	l.SetShowStatusBar(false)
-	l.SetFilteringEnabled(true)
-	l.SetShowTitle(false)
-	l.SetShowHelp(false)
+	// Initialize table
+	columns := []table.Column{
+		{Title: "ID", Width: 8},
+		{Title: "Title", Width: 30},
+		{Title: "Preview", Width: 60},
+	}
+
+	t := table.New(
+		table.WithColumns(columns),
+		table.WithFocused(true),
+		table.WithHeight(20),
+	)
+
+	s := table.DefaultStyles()
+	s.Header = s.Header.
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		BorderBottom(true).
+		Bold(false)
+	s.Selected = s.Selected.
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("57")).
+		Bold(false)
+	t.SetStyles(s)
 
 	// Find next ID
 	nextID := 1
-	for _, s := range snippets {
-		if s.ID >= nextID {
-			nextID = s.ID + 1
+	for _, snippet := range snippets {
+		if snippet.ID >= nextID {
+			nextID = snippet.ID + 1
 		}
 	}
 
@@ -69,7 +87,7 @@ func NewBrowseModel(snippets []Snippet) tea.Model {
 		titleInput:    titleInput,
 		bodyInput:     bodyInput,
 		keys:          keys,
-		list:          l,
+		table:         t,
 		mode:          browseMode,
 		filtering:     false,
 		currentSort:   sortByID,
@@ -77,6 +95,6 @@ func NewBrowseModel(snippets []Snippet) tea.Model {
 		nextID:        nextID,
 	}
 
-	m.updateList()
+	m.updateTable()
 	return &m
 }

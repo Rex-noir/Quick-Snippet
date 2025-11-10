@@ -2,12 +2,11 @@ package ui
 
 import (
 	"fmt"
-	"io"
 	"sort"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -38,58 +37,22 @@ const (
 	sortByTitle
 )
 
-// Custom item delegate for rendering list items
-type itemDelegate struct{}
-
-func (d itemDelegate) Height() int                             { return 2 }
-func (d itemDelegate) Spacing() int                            { return 1 }
-func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
-func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	s, ok := listItem.(Snippet)
-	if !ok {
-		return
-	}
-
-	preview := s.Body
-	if len(preview) > 60 {
-		preview = preview[:60] + "..."
-	}
-	preview = strings.ReplaceAll(preview, "\n", " ")
-
-	title := fmt.Sprintf("#%d: %s", s.ID, s.Title)
-	desc := preview
-
-	var titleStyle, descStyle lipgloss.Style
-
-	if index == m.Index() {
-		titleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("229")).
-			Background(lipgloss.Color("57")).
-			Bold(true).
-			Padding(0, 1)
-		descStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("246")).
-			Background(lipgloss.Color("57")).
-			Padding(0, 1)
-	} else {
-		titleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("229")).
-			Padding(0, 1)
-		descStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("241")).
-			Padding(0, 1)
-	}
-
-	fmt.Fprint(w, titleStyle.Render(title)+"\n")
-	fmt.Fprint(w, descStyle.Render(desc))
-}
-
-func (m *browseModel) updateList() {
-	items := make([]list.Item, len(m.filteredItems))
+func (m *browseModel) updateTable() {
+	rows := make([]table.Row, len(m.filteredItems))
 	for i, s := range m.filteredItems {
-		items[i] = s
+		preview := s.Body
+		if len(preview) > 60 {
+			preview = preview[:60] + "..."
+		}
+		preview = strings.ReplaceAll(preview, "\n", " ")
+
+		rows[i] = table.Row{
+			fmt.Sprintf("%d", s.ID),
+			s.Title,
+			preview,
+		}
 	}
-	m.list.SetItems(items)
+	m.table.SetRows(rows)
 }
 
 func (m *browseModel) applyFilter() {
@@ -106,7 +69,7 @@ func (m *browseModel) applyFilter() {
 		}
 		m.filteredItems = filtered
 	}
-	m.updateList()
+	m.updateTable()
 }
 
 func (m *browseModel) sortItems() {
@@ -126,19 +89,15 @@ func (m *browseModel) sortItems() {
 			return strings.ToLower(m.filteredItems[i].Title) > strings.ToLower(m.filteredItems[j].Title)
 		})
 	}
-	m.updateList()
+	m.updateTable()
 }
 
 func (m *browseModel) getSelectedSnippet() *Snippet {
-	item := m.list.SelectedItem()
-	if item == nil {
+	cursor := m.table.Cursor()
+	if cursor < 0 || cursor >= len(m.filteredItems) {
 		return nil
 	}
-	snippet, ok := item.(Snippet)
-	if !ok {
-		return nil
-	}
-	return &snippet
+	return &m.filteredItems[cursor]
 }
 
 func (m *browseModel) deleteSelected() {
@@ -171,19 +130,27 @@ func (m *browseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-		m.list.SetSize(msg.Width-4, msg.Height-15)
+		m.table.SetHeight(msg.Height - 15)
 		m.bodyInput.SetWidth(msg.Width - 4)
 
 	case tea.KeyMsg:
 		switch m.mode {
 		case browseMode:
 			if m.filtering {
+				// Set the current filter value when entering filter mode
+				if m.filterInput.Value() == "" && m.filterQuery != "" {
+					m.filterInput.SetValue(m.filterQuery)
+				}
 				switch msg.String() {
-				case "enter", "esc":
+				case "enter":
 					m.filtering = false
 					m.filterQuery = m.filterInput.Value()
 					m.applyFilter()
 					m.statusMsg = fmt.Sprintf("Filtered: %d results", len(m.filteredItems))
+				case "esc":
+					m.filtering = false
+					// Keep the existing filter query, don't clear it
+					m.filterInput.Blur()
 				default:
 					m.filterInput, cmd = m.filterInput.Update(msg)
 					return m, cmd
@@ -195,12 +162,14 @@ func (m *browseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				case key.Matches(msg, m.keys.filter):
 					m.filtering = true
-					m.filterInput.SetValue("")
+					// Preserve the current filter query value
+					m.filterInput.SetValue(m.filterQuery)
 					m.filterInput.Focus()
 					return m, nil
 
 				case key.Matches(msg, m.keys.clearFilter):
 					m.filterQuery = ""
+					m.filterInput.SetValue("")
 					m.applyFilter()
 					m.statusMsg = "Filter cleared"
 					return m, nil
@@ -347,9 +316,9 @@ func (m *browseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	// Update list in browse mode
+	// Update table in browse mode
 	if m.mode == browseMode && !m.filtering {
-		m.list, cmd = m.list.Update(msg)
+		m.table, cmd = m.table.Update(msg)
 		cmds = append(cmds, cmd)
 	}
 
@@ -372,12 +341,13 @@ func (m *browseModel) View() string {
 
 	switch m.mode {
 	case browseMode:
+		header := titleStyle.Render("📋 Quick Snippets")
 
 		filterBar := ""
 		if m.filtering {
 			filterBar = "\n🔍 " + m.filterInput.View() + "\n"
 		} else if m.filterQuery != "" {
-			filterBar = fmt.Sprintf("\n🔍 Filter: %s (press esc to clear)\n", m.filterQuery)
+			filterBar = fmt.Sprintf("\n🔍 Filter: %s (press c to clear)\n", m.filterQuery)
 		}
 
 		statusBar := ""
@@ -391,13 +361,13 @@ func (m *browseModel) View() string {
 		if m.showHelp {
 			help = helpStyle.Render("\nHelp:\n" +
 				"  ↑/k, ↓/j: navigate  |  enter/p: preview  |  e: edit  |  a: add\n" +
-				"  d: delete  |  /: filter  |  s: sort  |  ?: toggle help  |  q: quit")
+				"  d: delete  |  /: filter  |  c: clear filter  |  s: sort  |  ?: toggle help  |  q: quit")
 		} else {
 			help = helpStyle.Render("\nPress ? for help | " +
 				fmt.Sprintf("%d snippets", len(m.filteredItems)))
 		}
 
-		content = filterBar + m.list.View() + statusBar + help
+		content = header + filterBar + "\n" + m.table.View() + statusBar + help
 
 	case previewMode:
 		snippet := m.getSelectedSnippet()
