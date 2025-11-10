@@ -35,27 +35,6 @@ const (
 	sortByTitle
 )
 
-type browseModel struct {
-	table         table.Model
-	items         []Snippet
-	filteredItems []Snippet
-	filterInput   textinput.Model
-	titleInput    textinput.Model
-	bodyInput     textarea.Model
-	keys          browseKeyMap
-	mode          viewMode
-	filtering     bool
-	filterQuery   string
-	currentSort   sortField
-	sortAscending bool
-	statusMsg     string
-	showHelp      bool
-	width         int
-	height        int
-	nextID        int
-	editingID     int
-}
-
 func NewBrowseModel(snippets []Snippet) tea.Model {
 	keys := newBrowseKeyMap()
 
@@ -97,7 +76,7 @@ func NewBrowseModel(snippets []Snippet) tea.Model {
 	}
 
 	m.updateTable()
-	return m
+	return &m
 }
 
 func (m *browseModel) updateTable() {
@@ -213,11 +192,11 @@ func (m *browseModel) deleteSelected() {
 	m.statusMsg = fmt.Sprintf("Deleted: %s", snippet.Title)
 }
 
-func (m browseModel) Init() tea.Cmd {
+func (m *browseModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m browseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *browseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
@@ -409,7 +388,7 @@ func (m browseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m browseModel) View() string {
+func (m *browseModel) View() string {
 	baseStyle := lipgloss.NewStyle().Padding(1, 2)
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
