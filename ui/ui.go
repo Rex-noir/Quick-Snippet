@@ -347,7 +347,7 @@ func (m *browseModel) View() string {
 		if m.filtering {
 			filterBar = "\n🔍 " + m.filterInput.View() + "\n"
 		} else if m.filterQuery != "" {
-			filterBar = fmt.Sprintf("\n🔍 Filter: %s (press c to clear)\n", m.filterQuery)
+			filterBar = fmt.Sprintf("\n🔍 Filter: %s (press esc to clear)\n", m.filterQuery)
 		}
 
 		statusBar := ""
