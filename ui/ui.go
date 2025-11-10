@@ -367,7 +367,7 @@ func (m *browseModel) View() string {
 				fmt.Sprintf("%d snippets", len(m.filteredItems)))
 		}
 
-		content = header + filterBar + "\n" + m.table.View() + statusBar + help
+		content = header + "\n" + filterBar + "\n" + m.table.View() + statusBar + help
 
 	case previewMode:
 		snippet := m.getSelectedSnippet()
