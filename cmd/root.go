@@ -4,6 +4,7 @@ import (
 	"QuickSnip/ui"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -50,8 +51,24 @@ func initConfig() {
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 	} else {
-		home, _ := os.UserHomeDir()
-		viper.SetConfigName(".snip")
-		viper.AddConfigPath(home)
+		configDir, err := os.UserConfigDir()
+		if err != nil {
+			return
+		}
+		appDir := filepath.Join(configDir, "quicksnip")
+		if err := os.MkdirAll(appDir, 0755); err != nil {
+			return
+		}
+		path := configDir + "/snip"
+		viper.SetConfigName("config")
+		viper.AddConfigPath(path)
+
+		configPath := filepath.Join(appDir, "config.yaml")
+		if _, err := os.Stat(configPath); os.IsNotExist(err) {
+			err := viper.SafeWriteConfigAs(configPath)
+			if err != nil {
+				return
+			}
+		}
 	}
 }
