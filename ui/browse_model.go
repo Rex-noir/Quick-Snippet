@@ -20,7 +20,6 @@ func NewBrowseModel(db *sql.DB, snippets []Snippet) tea.Model {
 	// Initialize title input for add/edit
 	titleInput := textinput.New()
 	titleInput.Placeholder = "Enter title..."
-	titleInput.CharLimit = 100
 
 	// Initialize body textarea for add/edit
 	bodyInput := textarea.New()
