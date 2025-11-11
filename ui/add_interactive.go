@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"QuickSnip/db"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -16,7 +17,6 @@ type addInteractiveModel struct {
 	focused   bool
 	statusMsg string
 	done      bool
-	cancelled bool
 	db        *sql.DB
 }
 
@@ -58,19 +58,28 @@ func (m *addInteractiveModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case "esc":
-			m.cancelled = true
 			return m, tea.Quit
 
 		case "enter":
-			// If in body and shift+enter not pressed, save
-			if m.body.Focused() {
-				m.done = true
-				return m, tea.Quit
+			if !m.body.Focused() {
+				m.title.Blur()
+				m.body.Focus()
+				return m, nil
 			}
-			// Otherwise, move to body
-			m.title.Blur()
-			m.body.Focus()
-			return m, nil
+		case "ctrl+s":
+			title := m.title.Value()
+			body := m.body.Value()
+			if title == "" || body == "" {
+				m.statusMsg = "Title and body cannot be empty"
+				return m, nil
+			}
+			_, err := db.CreateSnippet(m.db, title, body)
+			if err != nil {
+				m.statusMsg = fmt.Sprintf("Error adding snippet: %v", err)
+				return m, nil
+			}
+			m.done = true
+			return m, tea.Quit
 		}
 
 	case tea.WindowSizeMsg:
@@ -94,7 +103,7 @@ func (m *addInteractiveModel) View() string {
 	b.WriteString(fmt.Sprintf("Title:\n%s\n\n", m.title.View()))
 	b.WriteString(fmt.Sprintf("Body:\n%s\n\n", m.body.View()))
 	b.WriteString("──────────────────────────────────────────\n")
-	b.WriteString("Press [Tab] to switch, [Enter] to save, [Esc] to cancel\n")
+	b.WriteString("Press [Tab] to switch, [Ctrl + s] to save, [Esc] to cancel\n")
 
 	if m.statusMsg != "" {
 		b.WriteString(fmt.Sprintf("\n%s\n", m.statusMsg))
