@@ -21,6 +21,7 @@ var rootCmd = &cobra.Command{
 	Long:  `A fast and flexible cli tool to save your thought snippets and read them again`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		appDir := viper.GetString("app_dir")
+		fmt.Println("App dir:", appDir)
 		dbConn, err := db.Open(appDir)
 		if err != nil {
 			return err
@@ -85,7 +86,8 @@ func initConfig() {
 		viper.AddConfigPath("$HOME")
 		viper.SetConfigType("yaml")
 	}
-	if err := viper.ReadInConfig(); err != nil {
+	err := viper.ReadInConfig()
+	if err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
 		if errors.As(err, &configFileNotFoundError) {
 			fmt.Println("No config file found, creating one...")
@@ -98,7 +100,7 @@ debug: false`)
 				fmt.Println("Failed to create default config:", err)
 				os.Exit(1)
 			}
-			err = viper.WriteConfig()
+			err = viper.WriteConfigAs(configPath)
 			if err != nil {
 				fmt.Println("Failed to write default config:", err)
 				os.Exit(1)
