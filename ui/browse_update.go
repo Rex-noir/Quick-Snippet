@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"QuickSnip/db"
+	"QuickSnip/db/models"
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -195,7 +197,11 @@ func (m *browseModel) handleDeleteConfirmKeys(msg tea.KeyMsg) (tea.Model, tea.Cm
 	case "y":
 		snippet := m.getSelectedSnippet()
 		if snippet != nil {
-			// TODO: Delete from database
+			err := db.DeleteSnippet(m.db, snippet.ID)
+			if err != nil {
+				m.statusMsg = fmt.Sprintf("Error deleting snippet: %v", err)
+				return m, nil
+			}
 			// Remove from items
 			for i, s := range m.items {
 				if s.ID == snippet.ID {
@@ -242,12 +248,21 @@ func (m *browseModel) saveSnippet() (tea.Model, tea.Cmd) {
 			Body:  body,
 		}
 
-		// TODO: Save to database
+		_, err := db.CreateSnippet(m.db, title, body)
+		if err != nil {
+			m.statusMsg = fmt.Sprintf("Error adding snippet: %v", err)
+			return m, nil
+		}
+
 		m.items = append(m.items, newSnippet)
 		m.statusMsg = fmt.Sprintf("Added snippet %d", nextID)
 
 	} else if m.mode == editMode {
-		// Update existing snippet
+		_, err := db.SaveSnippet(m.db, models.Snippet{ID: m.editingID, Title: title, Body: body})
+		if err != nil {
+			m.statusMsg = fmt.Sprintf("Error updating snippet: %v", err)
+			return m, nil
+		}
 		for i := range m.items {
 			if m.items[i].ID == m.editingID {
 				m.items[i].Title = title
@@ -255,7 +270,6 @@ func (m *browseModel) saveSnippet() (tea.Model, tea.Cmd) {
 				break
 			}
 		}
-		// TODO: Update database
 		m.statusMsg = fmt.Sprintf("Updated snippet %d", m.editingID)
 	}
 
