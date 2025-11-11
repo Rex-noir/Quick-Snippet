@@ -17,3 +17,12 @@ func RunBrowse(db *sql.DB, snippets []Snippet) error {
 	return nil
 
 }
+
+func RunAddInteractive(db *sql.DB, initialTitle, initialBody *string) error {
+	model := newAddInteractiveModel(initialTitle, initialBody, db)
+	p := tea.NewProgram(model)
+	if _, err := p.Run(); err != nil {
+		log.Println("Error running TUI", err)
+	}
+	return nil
+}
