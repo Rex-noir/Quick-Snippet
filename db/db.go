@@ -20,3 +20,14 @@ func Open(appDir string) (*sql.DB, error) {
 	}
 	return db, nil
 }
+
+func getDBPath(appDir string) string {
+	return filepath.Join(appDir, "data", "snip.sqlite")
+}
+
+func Close(db *sql.DB) {
+	err := db.Close()
+	if err != nil {
+		return
+	}
+}
