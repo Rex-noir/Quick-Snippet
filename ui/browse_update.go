@@ -38,6 +38,8 @@ func (m *browseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.bodyInput, cmd = m.bodyInput.Update(msg)
 		}
 		return m, cmd
+	default:
+		panic("unhandled default case")
 	}
 
 	return m, nil
@@ -91,7 +93,7 @@ func (m *browseModel) handleBrowseModeKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) 
 		m.statusMsg = ""
 		return m, nil
 
-	case "e":
+	case "e", "enter":
 		snippet := m.getSelectedSnippet()
 		if snippet != nil {
 			m.mode = editMode
