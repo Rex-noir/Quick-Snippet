@@ -26,7 +26,7 @@ func (m *browseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.bodyInput, cmd = m.bodyInput.Update(msg)
 		}
 	default:
-		panic("unhandled default case")
+
 	}
 
 	switch msg := msg.(type) {
@@ -69,7 +69,9 @@ func (m *browseModel) handleBrowseModeKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) 
 			m.filterQuery = m.filterInput.Value()
 			m.filtering = false
 			m.applyFilter()
-			m.statusMsg = fmt.Sprintf("Filter applied: %q", m.filterQuery)
+			if m.filterQuery != "" {
+				m.statusMsg = fmt.Sprintf("Filter applied: %q", m.filterQuery)
+			}
 			return m, nil
 		case "esc":
 			m.filtering = false
