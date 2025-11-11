@@ -2,6 +2,7 @@ package ui
 
 import (
 	"QuickSnip/db"
+	"QuickSnip/db/models"
 	"fmt"
 	"sort"
 	"strings"
@@ -293,7 +294,7 @@ func (m *browseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.items = append(m.items, newSnippet)
 					m.statusMsg = fmt.Sprintf("Added: %s", title)
 				} else {
-					_, err := db.SaveSnippet(m.db, Snippet{ID: m.editingID, Title: title, Body: body})
+					_, err := db.SaveSnippet(m.db, models.Snippet{ID: m.editingID, Title: title, Body: body})
 					if err != nil {
 						m.statusMsg = err.Error()
 						return nil, nil

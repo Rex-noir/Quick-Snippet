@@ -1,21 +1,28 @@
 package cmd
 
 import (
+	"QuickSnip/db"
+	"QuickSnip/mapper"
 	"QuickSnip/ui"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var browseCmd = &cobra.Command{
 	Use:   "browse",
 	Short: "Browse your saved snippets",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		snippets := []ui.Snippet{
-			{ID: 1, Title: "Golang Tips", Body: "Use defer for cleanup"},
-			{ID: 2, Title: "Docker", Body: "docker ps -a"},
-			{ID: 3, Title: "Java Snip", Body: "java snip"},
+		appDir := viper.GetString("app_dir")
+		dbConn, err := db.Open(appDir)
+		if err != nil {
+			return err
 		}
-		return ui.RunBrowse(snippets)
+		snippets, err := db.FetchSnippets(dbConn)
+		if err != nil {
+			return err
+		}
+		return ui.RunBrowse(dbConn, mapper.ToUISnippets(snippets))
 	},
 }
 

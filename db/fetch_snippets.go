@@ -1,11 +1,11 @@
 package db
 
 import (
-	"QuickSnip/ui"
+	"QuickSnip/db/models"
 	"database/sql"
 )
 
-func FetchSnippets(conn *sql.DB) ([]ui.Snippet, error) {
+func FetchSnippets(conn *sql.DB) ([]models.Snippet, error) {
 	rows, err := conn.Query("SELECT id, title, body FROM snippets ORDER BY id DESC")
 	if err != nil {
 		return nil, err
@@ -17,9 +17,9 @@ func FetchSnippets(conn *sql.DB) ([]ui.Snippet, error) {
 		}
 	}(rows)
 
-	var snippets []ui.Snippet
+	var snippets []models.Snippet
 	for rows.Next() {
-		var s ui.Snippet
+		var s models.Snippet
 		if err := rows.Scan(&s.ID, &s.Title, &s.Body); err != nil {
 			return nil, err
 		}

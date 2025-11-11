@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"QuickSnip/db"
+	"QuickSnip/mapper"
 	"QuickSnip/ui"
 	"bytes"
 	"errors"
@@ -21,8 +22,6 @@ var rootCmd = &cobra.Command{
 	Long:  `A fast and flexible cli tool to save your thought snippets and read them again`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		appDir := viper.GetString("app_dir")
-		fmt.Println("App dir:", appDir)
-		fmt.Println("DB PATH:", db.GetDBPath(appDir))
 		dbConn, err := db.Open(appDir)
 		if err != nil {
 			return err
@@ -42,7 +41,7 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		return ui.RunBrowse(dbConn, snippets)
+		return ui.RunBrowse(dbConn, mapper.ToUISnippets(snippets))
 	},
 }
 

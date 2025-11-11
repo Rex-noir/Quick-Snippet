@@ -1,11 +1,11 @@
 package db
 
 import (
-	"QuickSnip/ui"
+	"QuickSnip/db/models"
 	"database/sql"
 )
 
-func SaveSnippet(conn *sql.DB, snippet ui.Snippet) (int64, error) {
+func SaveSnippet(conn *sql.DB, snippet models.Snippet) (int64, error) {
 	result, err := conn.Exec(`UPDATE snippets SET title = ?, body = ? WHERE id =?`, snippet.Title, snippet.Body, snippet.ID)
 	if err != nil {
 		return 0, err
