@@ -21,7 +21,7 @@ func Open(appDir string) (*sql.DB, error) {
 	return db, nil
 }
 
-func getDBPath(appDir string) string {
+func GetDBPath(appDir string) string {
 	return filepath.Join(appDir, "data", "snip.sqlite")
 }
 

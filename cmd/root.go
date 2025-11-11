@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"QuickSnip/db"
 	"QuickSnip/ui"
 	"fmt"
 	"os"
@@ -59,6 +60,12 @@ func initConfig() {
 		if err := os.MkdirAll(appDir, 0755); err != nil {
 			return
 		}
+		dbPath := db.GetDBPath(appDir)
+		err = db.RunMigrations(dbPath)
+		if err != nil {
+			return
+		}
+
 		path := configDir + "/snip"
 		viper.SetConfigName("config")
 		viper.AddConfigPath(path)
