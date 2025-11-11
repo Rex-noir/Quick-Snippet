@@ -31,7 +31,7 @@ func (m *browseModel) renderCommandBar() string {
 		{"d", "delete"},
 		{"/", "filter"},
 		{"s", "sort"},
-		{"c", "copy"},
+		{"c", "copy body"},
 		{"?", "help"},
 		{"q", "quit"},
 	}

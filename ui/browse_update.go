@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"golang.design/x/clipboard"
 )
 
 // Update handles messages and updates the model
@@ -138,8 +139,13 @@ func (m *browseModel) handleBrowseModeKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) 
 	case "c":
 		snippet := m.getSelectedSnippet()
 		if snippet != nil {
+			err := clipboard.Init()
+			if err != nil {
+				m.statusMsg = fmt.Sprintf("Error copying snippet %d to clipboard: %v", snippet.ID, err)
+				return m, nil
+			}
+			clipboard.Write(clipboard.FmtText, []byte(snippet.Body))
 			m.statusMsg = fmt.Sprintf("Copied snippet %d to clipboard", snippet.ID)
-			// TODO: Implement actual clipboard copy
 		}
 		return m, nil
 	}
