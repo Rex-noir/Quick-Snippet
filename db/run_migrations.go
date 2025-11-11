@@ -6,7 +6,9 @@ import (
 	"fmt"
 
 	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/sqlite"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
+	_ "modernc.org/sqlite"
 )
 
 //go:embed migrations/*
@@ -19,7 +21,7 @@ func RunMigrations(dbPath string) error {
 		return fmt.Errorf("embed source : %w", err)
 	}
 
-	m, err := migrate.NewWithSourceInstance("iofs", d, "sqlite3://"+dbPath)
+	m, err := migrate.NewWithSourceInstance("iofs", d, "sqlite://"+dbPath)
 	if err != nil {
 		return fmt.Errorf("create migrator : %w", err)
 	}

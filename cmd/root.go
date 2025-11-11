@@ -3,6 +3,8 @@ package cmd
 import (
 	"QuickSnip/db"
 	"QuickSnip/ui"
+	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -18,10 +20,25 @@ var rootCmd = &cobra.Command{
 	Short: "Quick Snip is a tool to save your thought snippets",
 	Long:  `A fast and flexible cli tool to save your thought snippets and read them again`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		snippets := []ui.Snippet{
-			{ID: 1, Title: "Golang Tips", Body: "Use defer for cleanup"},
-			{ID: 2, Title: "Docker", Body: "docker ps -a"},
-			{ID: 3, Title: "Java Snip", Body: "java snip"},
+		appDir := viper.GetString("app_dir")
+		dbConn, err := db.Open(appDir)
+		if err != nil {
+			return err
+		}
+
+		err = db.RunMigrations(db.GetDBPath(appDir))
+		if err != nil {
+			return err
+		}
+
+		if err != nil {
+			return err
+		}
+		defer db.Close(dbConn)
+
+		snippets, err := db.FetchSnippets(dbConn)
+		if err != nil {
+			return err
 		}
 		return ui.RunBrowse(snippets)
 	},
@@ -49,33 +66,50 @@ func init() {
 }
 
 func initConfig() {
+	var configPath string
 	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
+		configPath = cfgFile
+		viper.SetConfigFile(configPath)
 	} else {
 		configDir, err := os.UserConfigDir()
 		if err != nil {
-			return
+			fmt.Println("Failed to get user config dir:", err)
+			os.Exit(1)
 		}
 		appDir := filepath.Join(configDir, "quicksnip")
-		if err := os.MkdirAll(appDir, 0755); err != nil {
-			return
-		}
-		dbPath := db.GetDBPath(appDir)
-		err = db.RunMigrations(dbPath)
-		if err != nil {
-			return
-		}
-
-		path := configDir + "/snip"
+		_ = os.MkdirAll(appDir, 0755)
+		configPath = filepath.Join(appDir, "config.yaml")
 		viper.SetConfigName("config")
-		viper.AddConfigPath(path)
+		viper.AddConfigPath(appDir)
+		viper.AddConfigPath(configDir)
+		viper.AddConfigPath("$HOME")
+		viper.SetConfigType("yaml")
+	}
+	if err := viper.ReadInConfig(); err != nil {
+		var configFileNotFoundError viper.ConfigFileNotFoundError
+		if errors.As(err, &configFileNotFoundError) {
+			fmt.Println("No config file found, creating one...")
 
-		configPath := filepath.Join(appDir, "config.yaml")
-		if _, err := os.Stat(configPath); os.IsNotExist(err) {
-			err := viper.SafeWriteConfigAs(configPath)
+			defaultConfig := []byte(`app_dir: ~/.config/quicksnip
+debug: false`)
+
+			err := viper.ReadConfig(bytes.NewBuffer(defaultConfig))
 			if err != nil {
-				return
+				fmt.Println("Failed to create default config:", err)
+				os.Exit(1)
 			}
+			err = viper.WriteConfig()
+			if err != nil {
+				fmt.Println("Failed to write default config:", err)
+				os.Exit(1)
+			}
+
+		} else {
+			fmt.Println("Error reading config file:", err)
+			os.Exit(1)
 		}
+
+		fmt.Println("Using config file:", viper.ConfigFileUsed())
+
 	}
 }
