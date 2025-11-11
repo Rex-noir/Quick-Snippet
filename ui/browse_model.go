@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"database/sql"
+
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -27,9 +29,10 @@ type browseModel struct {
 	height        int
 	nextID        int
 	editingID     int
+	db            *sql.DB
 }
 
-func NewBrowseModel(snippets []Snippet) tea.Model {
+func NewBrowseModel(db *sql.DB, snippets []Snippet) tea.Model {
 	keys := newBrowseKeyMap()
 
 	// Initialize filter input
@@ -93,6 +96,7 @@ func NewBrowseModel(snippets []Snippet) tea.Model {
 		currentSort:   sortByID,
 		sortAscending: true,
 		nextID:        nextID,
+		db:            db,
 	}
 
 	m.updateTable()

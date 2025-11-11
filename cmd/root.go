@@ -42,7 +42,7 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		return ui.RunBrowse(snippets)
+		return ui.RunBrowse(dbConn, snippets)
 	},
 }
 

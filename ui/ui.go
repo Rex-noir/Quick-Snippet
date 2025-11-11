@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"QuickSnip/db"
 	"fmt"
 	"sort"
 	"strings"
@@ -279,15 +280,24 @@ func (m *browseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 				if m.mode == addMode {
+					id, err := db.CreateSnippet(m.db, title, body)
+					if err != nil {
+						m.statusMsg = err.Error()
+						return nil, nil
+					}
 					newSnippet := Snippet{
-						ID:    m.nextID,
+						ID:    int(id),
 						Title: title,
 						Body:  body,
 					}
 					m.items = append(m.items, newSnippet)
-					m.nextID++
 					m.statusMsg = fmt.Sprintf("Added: %s", title)
 				} else {
+					_, err := db.SaveSnippet(m.db, Snippet{ID: m.editingID, Title: title, Body: body})
+					if err != nil {
+						m.statusMsg = err.Error()
+						return nil, nil
+					}
 					// Edit mode
 					for i := range m.items {
 						if m.items[i].ID == m.editingID {
