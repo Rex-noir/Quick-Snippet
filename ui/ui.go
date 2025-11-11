@@ -338,6 +338,7 @@ func (m *browseModel) View() string {
 		Padding(1, 0, 0, 0)
 
 	var content string
+	statusBar := ""
 
 	switch m.mode {
 	case browseMode:
@@ -350,7 +351,6 @@ func (m *browseModel) View() string {
 			filterBar = fmt.Sprintf("\n🔍 Filter: %s (press esc to clear)\n", m.filterQuery)
 		}
 
-		statusBar := ""
 		if m.statusMsg != "" {
 			statusBar = lipgloss.NewStyle().
 				Foreground(lipgloss.Color("42")).
@@ -396,6 +396,10 @@ func (m *browseModel) View() string {
 		}
 		title := titleStyle.Render(modeTitle)
 
+		if m.statusMsg != "" {
+			statusBar = lipgloss.NewStyle().Foreground(lipgloss.Color("9")).Render("x " + m.statusMsg + "")
+		}
+
 		titleLabel := lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render("Title:")
 		bodyLabel := lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render("Body:")
 
@@ -403,7 +407,13 @@ func (m *browseModel) View() string {
 
 		content = title + "\n\n" +
 			titleLabel + "\n" + m.titleInput.View() + "\n\n" +
-			bodyLabel + "\n" + m.bodyInput.View() + help
+			bodyLabel + "\n" + m.bodyInput.View() + "\n\n"
+
+		if statusBar != "" {
+			content += statusBar + "\n\n"
+		}
+
+		content += help
 	}
 
 	return baseStyle.Render(content)
