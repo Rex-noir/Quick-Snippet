@@ -10,25 +10,13 @@ import (
 func (m *browseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
-	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
-		return m, nil
-
-	case tea.KeyMsg:
-		return m.handleKeyPress(msg)
-	}
-
 	// Update active input based on mode
 	switch m.mode {
 	case browseMode:
 		if m.filtering {
 			m.filterInput, cmd = m.filterInput.Update(msg)
-			return m, cmd
 		}
 		m.table, cmd = m.table.Update(msg)
-		return m, cmd
 
 	case addMode, editMode:
 		// Check if title input is focused
@@ -37,12 +25,23 @@ func (m *browseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.bodyInput, cmd = m.bodyInput.Update(msg)
 		}
-		return m, cmd
 	default:
 		panic("unhandled default case")
 	}
 
-	return m, nil
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
+		return m, nil
+
+	case tea.KeyMsg:
+		var cmd2 tea.Cmd
+		_, cmd2 = m.handleKeyPress(msg)
+		cmd = cmd2
+	}
+
+	return m, cmd
 }
 
 func (m *browseModel) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
@@ -177,6 +176,7 @@ func (m *browseModel) handleEditModeKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.titleInput.Focus()
 		}
 		return m, nil
+
 	}
 
 	return m, nil
