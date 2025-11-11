@@ -22,6 +22,7 @@ var rootCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		appDir := viper.GetString("app_dir")
 		fmt.Println("App dir:", appDir)
+		fmt.Println("DB PATH:", db.GetDBPath(appDir))
 		dbConn, err := db.Open(appDir)
 		if err != nil {
 			return err
@@ -91,11 +92,13 @@ func initConfig() {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
 		if errors.As(err, &configFileNotFoundError) {
 			fmt.Println("No config file found, creating one...")
+			homeDir, _ := os.UserHomeDir()
 
-			defaultConfig := []byte(`app_dir: ~/.config/quicksnip
-debug: false`)
+			defaultConfig := []byte(fmt.Sprintf(`app_dir: %s/.config/quicksnip
+debug: false`, homeDir))
 
 			err := viper.ReadConfig(bytes.NewBuffer(defaultConfig))
+
 			if err != nil {
 				fmt.Println("Failed to create default config:", err)
 				os.Exit(1)
