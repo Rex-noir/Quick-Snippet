@@ -27,7 +27,6 @@ type browseModel struct {
 	showHelp      bool
 	width         int
 	height        int
-	nextID        int
 	editingID     int
 	db            *sql.DB
 }
@@ -95,7 +94,6 @@ func NewBrowseModel(db *sql.DB, snippets []Snippet) tea.Model {
 		filtering:     false,
 		currentSort:   sortByID,
 		sortAscending: true,
-		nextID:        nextID,
 		db:            db,
 	}
 
