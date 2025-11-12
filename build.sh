@@ -13,6 +13,7 @@ platforms=(
   "linux/arm64"
   "darwin/amd64"
   "darwin/arm64"
+  "android/arm64"
 )
 
 
