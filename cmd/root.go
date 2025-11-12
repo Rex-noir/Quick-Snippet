@@ -57,7 +57,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.snip.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/snip/config.yaml)")
 	rootCmd.PersistentFlags().Bool("debug", false, "enable debug mode")
 
 	err := viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
@@ -77,13 +77,15 @@ func initConfig() {
 			fmt.Println("Failed to get user config dir:", err)
 			os.Exit(1)
 		}
-		appDir := filepath.Join(configDir, "quicksnip")
+		appDir := filepath.Join(configDir, "snip")
 		_ = os.MkdirAll(appDir, 0755)
 		configPath = filepath.Join(appDir, "config.yaml")
+		homeDir, _ := os.UserHomeDir()
 		viper.SetConfigName("config")
 		viper.AddConfigPath(appDir)
 		viper.AddConfigPath(configDir)
-		viper.AddConfigPath("$HOME")
+
+		viper.AddConfigPath(homeDir)
 		viper.SetConfigType("yaml")
 	}
 	err := viper.ReadInConfig()
