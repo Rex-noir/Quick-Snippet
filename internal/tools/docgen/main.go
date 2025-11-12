@@ -1,7 +1,7 @@
 package main
 
 import (
-	"QuickSnip/cmd"
+	cmd "QuickSnip/cmd"
 	"flag"
 	"fmt"
 	"log"
@@ -13,64 +13,46 @@ import (
 )
 
 func main() {
-	out := flag.String("out", "./Readme.md", "output file (for single readme)")
-	dir := flag.String("dir", "./docs", "output directory for per-command docs")
-	front := flag.Bool("frontmatter", false, "prepend YAML front matter to markdown")
+	out := flag.String("out", "./docs/cli", "output directory")
+	format := flag.String("format", "markdown", "markdown|man|rest")
+	front := flag.Bool("frontmatter", false, "prepend simple YAML front matter to markdown")
 	flag.Parse()
 
-	root := cmd.Root()
-	root.DisableAutoGenTag = true
-
-	// Ensure directory exists for per-command docs
-	if err := os.MkdirAll(*dir, 0o755); err != nil {
+	if err := os.MkdirAll(*out, 0o755); err != nil {
 		log.Fatal(err)
 	}
 
-	// 1. Generate the per-command Markdown files first
-	err := doc.GenMarkdownTreeCustom(root, *dir,
-		func(filename string) string {
-			if *front {
+	root := cmd.Root()
+	root.DisableAutoGenTag = true // stable, reproducible files (no timestamp footer)
+
+	switch *format {
+	case "markdown":
+		if *front {
+			prep := func(filename string) string {
 				base := filepath.Base(filename)
 				name := strings.TrimSuffix(base, filepath.Ext(base))
 				title := strings.ReplaceAll(name, "_", " ")
-				return fmt.Sprintf("---\ntitle: %q\nslug: %q\ndescription: \"CLI reference for %s\"\n---\n\n",
-					title, name, title)
+				return fmt.Sprintf("---\ntitle: %q\nslug: %q\ndescription: \"CLI reference for %s\"\n---\n\n", title, name, title)
 			}
-			return ""
-		},
-		func(name string) string {
-			// Customize the link format: from "snip_add.md" to "docs/snip_add.md"
-			return fmt.Sprintf("docs/%s", strings.ToLower(name))
-		},
-	)
-	if err != nil {
-		log.Fatal(err)
+			link := func(name string) string { return strings.ToLower(name) }
+			if err := doc.GenMarkdownTreeCustom(root, *out, prep, link); err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			if err := doc.GenMarkdownTree(root, *out); err != nil {
+				log.Fatal(err)
+			}
+		}
+	case "man":
+		hdr := &doc.GenManHeader{Title: strings.ToUpper(root.Name()), Section: "1"}
+		if err := doc.GenManTree(root, hdr, *out); err != nil {
+			log.Fatal(err)
+		}
+	case "rest":
+		if err := doc.GenReSTTree(root, *out); err != nil {
+			log.Fatal(err)
+		}
+	default:
+		log.Fatalf("unknown format: %s", *format)
 	}
-
-	// 2. Generate the main README.md
-	f, err := os.Create(*out)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-
-	var buf strings.Builder
-	if err := doc.GenMarkdown(root, &buf); err != nil {
-		log.Fatal(err)
-	}
-
-	content := buf.String()
-
-	if *front {
-		title := strings.TrimSuffix(filepath.Base(*out), filepath.Ext(*out))
-		title = strings.ReplaceAll(title, "_", " ")
-		f.WriteString(fmt.Sprintf("---\ntitle: %q\ndescription: \"CLI reference for %s\"\n---\n\n",
-			title, title))
-	}
-
-	if _, err := f.WriteString(content); err != nil {
-		log.Fatal(err)
-	}
-
-	log.Printf("README generated at %s\nCommand docs generated in %s\n", *out, *dir)
 }

@@ -25,5 +25,5 @@ snip last [number] [flags]
 
 ### SEE ALSO
 
-* [snip](snip.md)     - Quick Snip is a tool to save your thought snippets
+* [snip](snip.md)	 - Quick Snip is a tool to save your thought snippets
 

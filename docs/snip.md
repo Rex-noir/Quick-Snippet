@@ -20,8 +20,8 @@ snip [flags]
 
 ### SEE ALSO
 
-* [snip add](snip_add.md)     - Add a new snippet
-* [snip browse](snip_browse.md)     - Browse your saved snippets
-* [snip first](snip_first.md)     - Print the first snippet(s)
-* [snip last](snip_last.md)     - Print the last snippet(s)
+* [snip add](snip_add.md)	 - Add a new snippet
+* [snip browse](snip_browse.md)	 - Browse your saved snippets
+* [snip first](snip_first.md)	 - Print the first snippet(s)
+* [snip last](snip_last.md)	 - Print the last snippet(s)
 
