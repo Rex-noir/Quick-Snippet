@@ -57,7 +57,7 @@ func (m *addInteractiveModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 
-		case "esc":
+		case "esc", "ctrl+c":
 			return m, tea.Quit
 
 		case "enter":
@@ -69,8 +69,8 @@ func (m *addInteractiveModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+s":
 			title := m.title.Value()
 			body := m.body.Value()
-			if title == "" || body == "" {
-				m.statusMsg = "Title and body cannot be empty"
+			if title == "" {
+				m.statusMsg = "Title cannot be empty"
 				return m, nil
 			}
 			_, err := db.CreateSnippet(m.db, title, body)
@@ -78,6 +78,7 @@ func (m *addInteractiveModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.statusMsg = fmt.Sprintf("Error adding snippet: %v", err)
 				return m, nil
 			}
+			m.statusMsg = helpStyle.Render("Snippet added\n")
 			m.done = true
 			return m, tea.Quit
 		}
@@ -103,7 +104,7 @@ func (m *addInteractiveModel) View() string {
 	b.WriteString(fmt.Sprintf("Title:\n%s\n\n", m.title.View()))
 	b.WriteString(fmt.Sprintf("Body:\n%s\n\n", m.body.View()))
 	b.WriteString("──────────────────────────────────────────\n")
-	b.WriteString("Press [Tab] to switch, [Ctrl + s] to save, [Esc] to cancel\n")
+	b.WriteString(helpStyle.Render(" • " + commandStyle.Render("esc") + descStyle.Render(" cancel ") + commandStyle.Render(" ctrl+s") + descStyle.Render(" save")))
 
 	if m.statusMsg != "" {
 		b.WriteString(fmt.Sprintf("\n%s\n", m.statusMsg))
