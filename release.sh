@@ -11,7 +11,7 @@ if [ -z "$VERSION" ]; then
 fi
 
 # Run your cross-platform build
-bash build.sh
+#bash build.sh
 
 # Generate changelog from last tag
 LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")

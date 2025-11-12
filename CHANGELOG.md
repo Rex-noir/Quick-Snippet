@@ -8,3 +8,8 @@
 - Add `release.sh` script to automate version releases (5c95776)
 
 
+## v1.1.0 - 2025-11-12
+
+
+
+
