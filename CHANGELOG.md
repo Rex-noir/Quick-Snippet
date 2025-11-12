@@ -25,3 +25,9 @@
 - Release v1.1.0 (06c5447)
 
 
+## v1.2.1 - 2025-11-12
+
+- Remove Android ARM64 target and associated build artifacts. (6788337)
+- Remove unused file. (588099b)
+
+
