@@ -24,8 +24,12 @@ else
 fi
 
 # Save changelog to file
-CHANGELOG_FILE="CHANGELOG_${VERSION}.md"
-echo -e "# Changelog for $VERSION\n\n$CHANGELOG\n" > "$CHANGELOG_FILE"
+CHANGELOG_FILE="CHANGELOG.md"
+{
+  echo -e "## $VERSION - $(date +'%Y-%m-%d')\n"
+  echo -e "$CHANGELOG\n"
+  echo
+} >> "$CHANGELOG_FILE"
 
 # Commit, tag, and push
 git add .
