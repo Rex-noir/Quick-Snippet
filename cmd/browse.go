@@ -13,7 +13,7 @@ var browseCmd = &cobra.Command{
 	Use:   "browse",
 	Short: "Browse your saved snippets",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		appDir := viper.GetString("app_dir")
+		appDir := viper.GetString("data_dir")
 		dbConn, err := db.Open(appDir)
 		if err != nil {
 			return err

@@ -21,7 +21,7 @@ var rootCmd = &cobra.Command{
 	Short: "Quick Snip is a tool to save your thought snippets",
 	Long:  `A fast and flexible cli tool to save your thought snippets and read them again`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		appDir := viper.GetString("app_dir")
+		appDir := viper.GetString("data_dir")
 		dbConn, err := db.Open(appDir)
 		if err != nil {
 			return err
@@ -95,7 +95,7 @@ func initConfig() {
 			fmt.Println("No config file found, creating one...")
 			homeDir, _ := os.UserHomeDir()
 
-			defaultConfig := []byte(fmt.Sprintf(`app_dir: %s/.config/quicksnip
+			defaultConfig := []byte(fmt.Sprintf(`data_dir: %s/.config/snip
 debug: false`, homeDir))
 
 			err := viper.ReadConfig(bytes.NewBuffer(defaultConfig))

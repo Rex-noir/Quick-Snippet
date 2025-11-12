@@ -17,7 +17,7 @@ var lastCmd = &cobra.Command{
 	Long:  `Print the most recently saved snippet(s) from the database. You can specify a number to fetch multiple.`,
 	Args:  cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		appDir := viper.GetString("app_dir")
+		appDir := viper.GetString("data_dir")
 		dbConn, err := db.Open(appDir)
 		if err != nil {
 			return err

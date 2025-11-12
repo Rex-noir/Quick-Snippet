@@ -18,7 +18,7 @@ var addCmd = &cobra.Command{
 	Long:  `Add a new snippet directly or interactively if -i flag is provided.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var title, body string
-		appDir := viper.GetString("app_dir")
+		appDir := viper.GetString("data_dir")
 		conn, err := db.Open(appDir)
 		if err != nil {
 			return err
