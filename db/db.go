@@ -9,12 +9,6 @@ import (
 	_ "modernc.org/sqlite" // or mattn/go-sqlite3 depending on your choice
 )
 
-type Snippet struct {
-	ID    int
-	Title string
-	Body  string
-}
-
 func GetDBPath(appDir string) string {
 	dataDir := filepath.Join(appDir, "data")
 	_ = os.MkdirAll(dataDir, 0755) // ensure the directory exists
