@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"QuickSnip/db"
+	"QuickSnip/mapper"
+	"QuickSnip/ui"
 	"fmt"
 	"strconv"
 
@@ -11,21 +13,22 @@ import (
 
 var lastCmd = &cobra.Command{
 	Use:   "last [number]",
-	Short: "Print the last snippet",
-	Long:  `Print the last snippet saved in the database.`,
+	Short: "Print the last snippet(s)",
+	Long:  `Print the most recently saved snippet(s) from the database. You can specify a number to fetch multiple.`,
+	Args:  cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		appDir := viper.GetString("app_dir")
 		dbConn, err := db.Open(appDir)
 		if err != nil {
-			fmt.Println(err)
 			return err
 		}
+		defer db.Close(dbConn)
 
 		number := 1
 		if len(args) > 0 {
 			n, convErr := strconv.Atoi(args[0])
 			if convErr != nil {
-				return fmt.Errorf("invalid number: %w", convErr)
+				return fmt.Errorf("invalid number: %v", convErr)
 			}
 			number = n
 		}
@@ -35,8 +38,9 @@ var lastCmd = &cobra.Command{
 			return err
 		}
 
-		for _, s := range snippets {
-			fmt.Printf("[%d] %s\n%s\n\n", s.ID, s.Title, s.Body)
+		err = ui.RunListModel(dbConn, mapper.ToUISnippets(snippets))
+		if err != nil {
+			return err
 		}
 
 		return nil

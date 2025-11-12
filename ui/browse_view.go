@@ -3,19 +3,6 @@ package ui
 import (
 	"fmt"
 	"strings"
-
-	"github.com/charmbracelet/lipgloss"
-)
-
-var (
-	titleStyle = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("205")).
-			Padding(0, 0, 1, 0)
-
-	statusStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("241")).
-			Padding(1, 0, 0, 0)
 )
 
 // View renders the browse model
