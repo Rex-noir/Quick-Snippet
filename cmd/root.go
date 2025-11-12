@@ -117,3 +117,7 @@ debug: false`, homeDir))
 
 	}
 }
+
+func Root() *cobra.Command {
+	return rootCmd
+}
