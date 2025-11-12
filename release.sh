@@ -10,11 +10,32 @@ if [ -z "$VERSION" ]; then
   exit 1
 fi
 
+# Run your cross-platform build
 bash build.sh
 
+# Generate changelog from last tag
+LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+if [ -n "$LAST_TAG" ]; then
+  echo "Generating changelog since $LAST_TAG..."
+  CHANGELOG=$(git log "$LAST_TAG"..HEAD --pretty=format:"- %s (%h)" --no-merges)
+else
+  echo "No previous tag found. Generating changelog from start..."
+  CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+fi
+
+# Save changelog to file
+CHANGELOG_FILE="CHANGELOG_${VERSION}.md"
+echo -e "# Changelog for $VERSION\n\n$CHANGELOG\n" > "$CHANGELOG_FILE"
+
+# Commit, tag, and push
 git add .
 git commit -m "Release $VERSION"
 git tag -a "$VERSION" -m "Release $VERSION"
 git push origin main --tags
 
-gh release create "$VERSION" "$OUTPUT_DIR"/* --title "$VERSION" --notes "Automated release for $APP_NAME $VERSION"
+# Create GitHub release with changelog content
+gh release create "$VERSION" "$OUTPUT_DIR"/* \
+  --title "$VERSION" \
+  --notes-file "$CHANGELOG_FILE"
+
+echo "✅ Release $VERSION created with changelog."
