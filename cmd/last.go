@@ -17,6 +17,7 @@ var lastCmd = &cobra.Command{
 		appDir := viper.GetString("app_dir")
 		dbConn, err := db.Open(appDir)
 		if err != nil {
+			fmt.Println(err)
 			return err
 		}
 
