@@ -16,16 +16,6 @@ var addCmd = &cobra.Command{
 	Use:   "add [title] [body]",
 	Short: "Add a new snippet",
 	Long:  `Add a new snippet directly or interactively if -i flag is provided.`,
-	Args: func(cmd *cobra.Command, args []string) error {
-		// If interactive mode is on, skip strict arg validation
-		if interactive {
-			return nil
-		}
-		if len(args) != 2 {
-			return fmt.Errorf("requires exactly 2 arguments unless --interactive is used")
-		}
-		return nil
-	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var title, body string
 		appDir := viper.GetString("app_dir")
@@ -52,13 +42,18 @@ var addCmd = &cobra.Command{
 			return ui.RunAddInteractive(conn, &title, &body)
 		}
 
-		if title == "" || body == "" {
-			return fmt.Errorf("title and body cannot be empty")
+		if title == "" {
+			return fmt.Errorf("title cannot be empty")
 		}
 
 		_, err = db.CreateSnippet(conn, title, body)
 		if err != nil {
 			return err
+		}
+
+		if body == "" {
+			fmt.Printf("Added snippet: %q\n", title)
+			return nil
 		}
 
 		fmt.Printf("✅ Added snippet: %q -> %q\n", title, body)
