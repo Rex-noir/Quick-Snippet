@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"QuickSnip/db"
 	"database/sql"
 	"fmt"
 
@@ -61,6 +62,7 @@ func newListModel(snippets []Snippet, db *sql.DB) *listModel {
 
 	l.Title = "Snippets"
 	l.Styles.Title = titleStyle
+	l.SetShowStatusBar(false)
 	l.KeyMap.CursorUp.SetKeys("up", "k")
 	l.KeyMap.CursorDown.SetKeys("down", "j")
 	l.AdditionalFullHelpKeys = func() []key.Binding {
@@ -76,6 +78,7 @@ func (m *listModel) Init() tea.Cmd {
 }
 
 func (m *listModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		h, v := appStyle.GetFrameSize()
@@ -89,6 +92,12 @@ func (m *listModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			i := m.list.Index()
 			if i >= 0 && i < len(m.list.Items()) {
 				it := m.list.Items()[i].(snippetItem)
+				err := db.DeleteSnippet(m.db, it.ID)
+				if err != nil {
+					delMsg := fmt.Sprintf("Error deleting snippet #%d: %v", it.ID, err)
+					m.list.NewStatusMessage(statusMessageStyle(delMsg))
+					return m, nil
+				}
 				delMsg := fmt.Sprintf("Deleted snippet #%d", it.ID)
 				delCmd := m.list.NewStatusMessage(statusMessageStyle(delMsg))
 				m.list.RemoveItem(i)

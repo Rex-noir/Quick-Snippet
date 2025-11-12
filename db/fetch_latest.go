@@ -13,7 +13,6 @@ func FetchLatest(db *sql.DB, n *int) ([]models.Snippet, error) {
 		number = *n
 	}
 
-	defer Close(db)
 	rows, err := db.Query("SELECT id,title,body FROM snippets ORDER BY id DESC LIMIT ?", number)
 	if err != nil {
 		return nil, err
