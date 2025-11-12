@@ -14,7 +14,6 @@ snip [flags]
 
 ```
       --config string   config file (default is $HOME/.snip.yaml)
-      --debug           enable debug mode
   -h, --help            help for snip
 ```
 

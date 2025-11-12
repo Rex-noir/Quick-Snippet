@@ -58,7 +58,6 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/snip/config.yaml)")
-	rootCmd.PersistentFlags().Bool("debug", false, "enable debug mode")
 
 	err := viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
 	if err != nil {

@@ -19,8 +19,7 @@ snip last [number] [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.snip.yaml)
-      --debug           enable debug mode
+      --config string   config file (default is $HOME/.config/snip/config.yaml)
 ```
 
 ### SEE ALSO
